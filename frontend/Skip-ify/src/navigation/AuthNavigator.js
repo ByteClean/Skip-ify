@@ -7,7 +7,7 @@ import { COLORS } from '../theme/colors';
 
 const Stack = createStackNavigator();
 
-export default function AuthNavigator() {
+export default function AuthNavigator({ onAuthSuccess = () => {} }) {
   return (
     <Stack.Navigator
       screenOptions={{
@@ -16,9 +16,15 @@ export default function AuthNavigator() {
         headerTitleStyle: { fontWeight: 'bold' },
       }}
     >
-      <Stack.Screen name="Start" component={StartScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="Login" component={LoginScreen} options={{ title: 'Anmelden' }} />
-      <Stack.Screen name="Register" component={RegisterScreen} options={{ title: 'Registrieren' }} />
+      <Stack.Screen name="Start" options={{ headerShown: false }}>
+        {(props) => <StartScreen {...props} onAuthSuccess={onAuthSuccess} />}
+      </Stack.Screen>
+      <Stack.Screen name="Login" options={{ title: 'Anmelden' }}>
+        {(props) => <LoginScreen {...props} onAuthSuccess={onAuthSuccess} />}
+      </Stack.Screen>
+      <Stack.Screen name="Register" options={{ title: 'Registrieren' }}>
+        {(props) => <RegisterScreen {...props} onAuthSuccess={onAuthSuccess} />}
+      </Stack.Screen>
     </Stack.Navigator>
   );
 }

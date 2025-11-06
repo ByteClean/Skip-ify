@@ -1,22 +1,34 @@
 // App.js
 import { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import AuthNavigator from './src/navigation/AuthNavigator';
-import AppNavigator from './src/navigation/AppTabs';
-import { COLORS } from './src/theme/colors';
 import { View, ActivityIndicator } from 'react-native';
+import { COLORS } from './src/theme/colors';
+
+import AuthNavigator from './src/navigation/AuthNavigator';
+import AppTabs from './src/navigation/AppTabs';
 
 export default function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(null); // null = loading
+  const [isLoggedIn, setIsLoggedIn] = useState(null);
 
-  // TODO: Später AsyncStorage oder API prüfen
+  const handleAuthSuccess = () => {
+    setIsLoggedIn(true);
+  };
+
   useEffect(() => {
-    setTimeout(() => setIsLoggedIn(false), 1000); // Simuliere Ladezeit
+    // Simuliere Auth-Check (später AsyncStorage oder API)
+    setTimeout(() => setIsLoggedIn(false), 1000);
   }, []);
 
   if (isLoggedIn === null) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.secondary }}>
+      <View
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: COLORS.secondary,
+        }}
+      >
         <ActivityIndicator size="large" color={COLORS.primary} />
       </View>
     );
@@ -24,7 +36,11 @@ export default function App() {
 
   return (
     <NavigationContainer>
-      {isLoggedIn ? <AppNavigator /> : <AuthNavigator />}
+      {isLoggedIn ? (
+        <AppTabs />
+      ) : (
+        <AuthNavigator onAuthSuccess={handleAuthSuccess} />
+      )}
     </NavigationContainer>
   );
 }

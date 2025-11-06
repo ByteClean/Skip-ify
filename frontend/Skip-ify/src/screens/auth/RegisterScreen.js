@@ -3,7 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'reac
 import { useState } from 'react';
 import { COLORS } from '../../theme/colors';
 
-export default function RegisterScreen({ navigation }) {
+export default function RegisterScreen({ navigation, onAuthSuccess }) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -18,8 +18,8 @@ export default function RegisterScreen({ navigation }) {
       Alert.alert('Fehler', 'Passwort mind. 8 Zeichen');
       return;
     }
-    // TODO: API Call
-    navigation.replace('AppTabs');
+    // TODO: API-Call
+    onAuthSuccess(); // ← Wechsle zu AppTabs
   };
 
   return (

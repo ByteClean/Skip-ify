@@ -3,7 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'reac
 import { useState } from 'react';
 import { COLORS } from '../../theme/colors';
 
-export default function LoginScreen({ navigation }) {
+export default function LoginScreen({ navigation, onAuthSuccess }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -12,28 +12,17 @@ export default function LoginScreen({ navigation }) {
       Alert.alert('Fehler', 'Bitte alle Felder ausfüllen');
       return;
     }
-    // TODO: API Call
-    navigation.replace('AppTabs');
+    // TODO: API-Call
+    onAuthSuccess(); // ← Wechsle zu AppTabs
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.label}>E-Mail</Text>
-      <TextInput
-        style={styles.input}
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
+      <TextInput style={styles.input} value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
 
       <Text style={styles.label}>Passwort</Text>
-      <TextInput
-        style={styles.input}
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
+      <TextInput style={styles.input} value={password} onChangeText={setPassword} secureTextEntry />
 
       <TouchableOpacity style={styles.button} onPress={handleLogin}>
         <Text style={styles.buttonText}>Anmelden</Text>

@@ -1,15 +1,10 @@
 // src/screens/auth/StartScreen.js
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { COLORS } from '../../theme/colors';
 
-export default function StartScreen({ navigation }) {
+export default function StartScreen({ navigation, onAuthSuccess }) {
   return (
     <View style={styles.container}>
-      <Image
-        source={require('../../assets/logo.png')} // Optional: füge Logo hinzu
-        style={styles.logo}
-        resizeMode="contain"
-      />
       <Text style={styles.title}>Skip-ify</Text>
       <Text style={styles.subtitle}>Deine Musik. Überall. Kostenlos.</Text>
 
@@ -27,10 +22,7 @@ export default function StartScreen({ navigation }) {
         <Text style={styles.outlineButtonText}>Noch kein Konto? Registrieren</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity
-        style={styles.link}
-        onPress={() => navigation.replace('AppTabs')} // Gehe direkt in App
-      >
+      <TouchableOpacity style={styles.link} onPress={onAuthSuccess}>
         <Text style={styles.linkText}>Ohne Konto fortfahren</Text>
       </TouchableOpacity>
     </View>
