@@ -36,11 +36,7 @@ export default function App() {
 
   return (
     <NavigationContainer>
-      {isLoggedIn ? (
-        <AppTabs />
-      ) : (
-        <AuthNavigator onAuthSuccess={handleAuthSuccess} />
-      )}
+      {isLoggedIn ? <AppTabs /> : <AuthNavigator onAuthSuccess={handleAuthSuccess} />}
     </NavigationContainer>
   );
 }
