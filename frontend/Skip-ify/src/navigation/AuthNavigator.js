@@ -19,12 +19,10 @@ export default function AuthNavigator({ onAuthSuccess = () => {} }) {
       <Stack.Screen name="Start" options={{ headerShown: false }}>
         {(props) => <StartScreen {...props} onAuthSuccess={onAuthSuccess} />}
       </Stack.Screen>
-      <Stack.Screen name="Login" options={{ title: 'Anmelden' }}>
+      <Stack.Screen name="Login">
         {(props) => <LoginScreen {...props} onAuthSuccess={onAuthSuccess} />}
       </Stack.Screen>
-      <Stack.Screen name="Register" options={{ title: 'Registrieren' }}>
-        {(props) => <RegisterScreen {...props} onAuthSuccess={onAuthSuccess} />}
-      </Stack.Screen>
+      <Stack.Screen name="Register" component={RegisterScreen} />
     </Stack.Navigator>
   );
 }

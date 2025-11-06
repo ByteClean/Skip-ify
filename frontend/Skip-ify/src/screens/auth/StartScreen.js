@@ -1,12 +1,31 @@
 // src/screens/auth/StartScreen.js
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import React from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import { useAuth } from '../../contexts/AuthContext';
 import { COLORS } from '../../theme/colors';
 
 export default function StartScreen({ navigation, onAuthSuccess }) {
+  const { enterOfflineMode } = useAuth();
+
+  const handleOffline = async () => {
+    try {
+      await enterOfflineMode(); // Setzt offlineMode + user
+      onAuthSuccess(); // Wechselt zu AppTabs
+    } catch (error) {
+      console.error('Offline mode failed:', error);
+    }
+  };
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Skip-ify</Text>
-      <Text style={styles.subtitle}>Deine Musik. Überall. Kostenlos.</Text>
+      <Image
+        source={require('../../assets/logo.png')}
+        style={styles.logo}
+        resizeMode="contain"
+      />
+
+      <Text style={styles.title}>Willkommen bei Skip-ify</Text>
+      <Text style={styles.subtitle}>Deine Musik, überall.</Text>
 
       <TouchableOpacity
         style={styles.button}
@@ -16,15 +35,22 @@ export default function StartScreen({ navigation, onAuthSuccess }) {
       </TouchableOpacity>
 
       <TouchableOpacity
-        style={[styles.button, styles.outlineButton]}
+        style={[styles.button, styles.registerButton]}
         onPress={() => navigation.navigate('Register')}
       >
-        <Text style={styles.outlineButtonText}>Noch kein Konto? Registrieren</Text>
+        <Text style={styles.buttonText}>Registrieren</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.link} onPress={onAuthSuccess}>
-        <Text style={styles.linkText}>Ohne Konto fortfahren</Text>
+      <TouchableOpacity
+        style={styles.offlineButton}
+        onPress={handleOffline}
+      >
+        <Text style={styles.offlineText}>Ohne Konto fortfahren (Offline)</Text>
       </TouchableOpacity>
+
+      <Text style={styles.hint}>
+        Offline-Modus: Nur lokale Musik & Bibliothek
+      </Text>
     </View>
   );
 }
@@ -32,25 +58,26 @@ export default function StartScreen({ navigation, onAuthSuccess }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.secondary,
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: COLORS.background,
     padding: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   logo: {
     width: 120,
     height: 120,
-    marginBottom: 20,
+    marginBottom: 30,
   },
   title: {
-    fontSize: 36,
+    fontSize: 28,
     fontWeight: 'bold',
     color: COLORS.primary,
-    marginBottom: 10,
+    textAlign: 'center',
+    marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: COLORS.text,
+    color: COLORS.textSecondary,
     textAlign: 'center',
     marginBottom: 40,
   },
@@ -62,27 +89,33 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
   },
-  outlineButton: {
-    backgroundColor: 'transparent',
-    borderWidth: 2,
-    borderColor: COLORS.primary,
+  registerButton: {
+    backgroundColor: COLORS.accent,
   },
   buttonText: {
-    color: COLORS.white,
+    color: '#fff',
+    fontSize: 18,
     fontWeight: '600',
-    fontSize: 16,
   },
-  outlineButtonText: {
+  offlineButton: {
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+    width: '100%',
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  offlineText: {
     color: COLORS.primary,
-    fontWeight: '600',
     fontSize: 16,
+    fontWeight: '500',
   },
-  link: {
-    marginTop: 20,
-  },
-  linkText: {
-    color: COLORS.accent,
-    fontSize: 14,
-    textDecorationLine: 'underline',
+  hint: {
+    marginTop: 30,
+    fontSize: 12,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
   },
 });
