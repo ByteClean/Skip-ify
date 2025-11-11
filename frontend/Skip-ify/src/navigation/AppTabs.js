@@ -9,6 +9,7 @@ import LibraryScreen from '../screens/LibraryScreen';
 import PlaylistsScreen from '../screens/PlaylistsScreen';
 import FavoritesScreen from '../screens/FavoritesScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import PlayerScreen from '../screens/PlayerScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -49,6 +50,7 @@ export default function AppTabs() {
           ),
         }}
       />
+      <Tab.Screen name="Player" component={PlayerScreen} options={{ tabBarButton: () => null }} />
       <Tab.Screen
         name="Playlists"
         component={PlaylistsScreen}

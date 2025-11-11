@@ -6,6 +6,7 @@ import AuthNavigator from './src/navigation/AuthNavigator';
 import AppTabs from './src/navigation/AppTabs';
 import { View, ActivityIndicator, Text, StyleSheet } from 'react-native';
 import { COLORS } from './src/theme/colors';
+import { LibraryProvider } from './src/contexts/LibraryContext';
 
 const LoadingScreen = () => (
   <View style={styles.container}>
@@ -25,9 +26,11 @@ const AppContent = () => {
 export default function App() {
   return (
     <AuthProvider>
-      <NavigationContainer>
-        <AppContent />
-      </NavigationContainer>
+      <LibraryProvider>
+        <NavigationContainer>
+          <AppContent />
+        </NavigationContainer>
+      </LibraryProvider>
     </AuthProvider>
   );
 }

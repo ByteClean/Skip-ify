@@ -2,6 +2,12 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Alert } from 'react-native';
+import { API_URL_DEV, API_URL_PROD } from '@env';
+import Constants from 'expo-constants';
+
+export const API_URL = __DEV__
+  ? API_URL_DEV || 'http://10.0.2.2:5000'
+  : API_URL_PROD || 'https://your-api.com';
 
 const AuthContext = createContext();
 
@@ -12,8 +18,6 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isOfflineMode, setIsOfflineMode] = useState(false);
-
-  const API_URL = __DEV__ ? 'http://192.168.1.174:5000' : 'https://your-api.com';
 
   // Load auth state on startup
   useEffect(() => {
