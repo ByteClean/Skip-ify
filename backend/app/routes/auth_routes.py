@@ -33,7 +33,8 @@ def login():
     
     user = User.query.filter_by(email=email).first()
     if user and user.check_password(password):
-        access_token = create_access_token(identity=user.id)
+        # Hier Identity als String machen
+        access_token = create_access_token(identity=str(user.id))
         return jsonify({'access_token': access_token, 'user': user.to_dict()})
     
     return jsonify({'error': 'Ungültige Anmeldedaten'}), 401
