@@ -10,13 +10,18 @@ import { LibraryProvider } from './src/contexts/LibraryContext';
 
 const LoadingScreen = () => (
   <View style={styles.container}>
-    <ActivityIndicator size="large" color={COLORS.primary} />
+    <ActivityIndicator size="large" color={COLORS.primary || 'blue'} />
     <Text style={styles.text}>Lade Skip-ify...</Text>
   </View>
 );
 
 const AppContent = () => {
-  const { user, loading } = useAuth();
+  const authContext = useAuth();
+
+  // Schutz: Falls useAuth() noch nicht initialisiert ist
+  if (!authContext) return <LoadingScreen />;
+
+  const { user, loading } = authContext;
 
   if (loading) return <LoadingScreen />;
 
@@ -40,12 +45,12 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: COLORS.background,
+    backgroundColor: COLORS.background || '#fff',
   },
   text: {
     marginTop: 20,
     fontSize: 18,
-    color: COLORS.text,
+    color: COLORS.text || '#000',
     fontWeight: '600',
   },
 });

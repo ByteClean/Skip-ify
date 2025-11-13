@@ -3,15 +3,39 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Alert } from 'react-native';
 import { API_URL_DEV, API_URL_PROD } from '@env';
-import Constants from 'expo-constants';
 
 export const API_URL = __DEV__
   ? API_URL_DEV || 'http://10.0.2.2:5000'
   : API_URL_PROD || 'https://your-api.com';
 
-const AuthContext = createContext();
+const AuthContext = createContext({
+  user: null,
+  token: null,
+  isOfflineMode: false,
+  loading: true,
+  register: async () => {},
+  login: async () => {},
+  logout: async () => {},
+  enterOfflineMode: async () => {},
+});
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    console.warn('useAuth() außerhalb von AuthProvider aufgerufen');
+    return {
+      user: null,
+      token: null,
+      isOfflineMode: false,
+      loading: true,
+      register: async () => {},
+      login: async () => {},
+      logout: async () => {},
+      enterOfflineMode: async () => {},
+    };
+  }
+  return context;
+};
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -19,7 +43,6 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [isOfflineMode, setIsOfflineMode] = useState(false);
 
-  // Load auth state on startup
   useEffect(() => {
     const initAuth = async () => {
       try {
@@ -46,17 +69,9 @@ export const AuthProvider = ({ children }) => {
       }
     };
 
-    const timeout = setTimeout(() => {
-      console.warn('Auth loading timeout → Offline-Modus');
-      setIsOfflineMode(true);
-      setUser({ id: 'offline', name: 'Gast', email: 'offline@skipify.com' });
-      setLoading(false);
-    }, 3000);
-
-    initAuth().then(() => clearTimeout(timeout));
+    initAuth();
   }, []);
 
-  // Register function
   const register = async (name, email, password) => {
     try {
       const response = await fetch(`${API_URL}/auth/register`, {
@@ -64,14 +79,9 @@ export const AuthProvider = ({ children }) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, password }),
       });
-
       const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Registrierung fehlgeschlagen');
-      }
-
-      Alert.alert('Erfolg', 'Konto erstellt! Du kannst dich jetzt anmelden.');
+      if (!response.ok) throw new Error(data.error || 'Registrierung fehlgeschlagen');
+      Alert.alert('Erfolg', 'Konto erstellt!');
       return { success: true };
     } catch (error) {
       Alert.alert('Fehler', error.message);
@@ -79,7 +89,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Login function
   const login = async (email, password) => {
     try {
       const response = await fetch(`${API_URL}/auth/login`, {
@@ -87,12 +96,8 @@ export const AuthProvider = ({ children }) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
-
       const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Login fehlgeschlagen');
-      }
+      if (!response.ok) throw new Error(data.error || 'Login fehlgeschlagen');
 
       const { access_token, user } = data;
       await Promise.all([
@@ -112,13 +117,12 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Logout
   const logout = async () => {
     try {
       await Promise.all([
         AsyncStorage.removeItem('token'),
         AsyncStorage.removeItem('user'),
-        AsyncStorage.removeItem('offlineMode'), // WICHTIG: Immer entfernen!
+        AsyncStorage.removeItem('offlineMode'),
       ]);
       setToken(null);
       setUser(null);
@@ -128,28 +132,18 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Offline mode
   const enterOfflineMode = async () => {
-  try {
-    await AsyncStorage.setItem('offlineMode', 'true');
-    setIsOfflineMode(true);
-    setUser({ id: 'offline', name: 'Gast', email: 'offline@skipify.com' });
-    setToken(null); // Sicherstellen: kein Token im Offline-Modus
-  } catch (error) {
-    console.error('Failed to enter offline mode:', error);
-  }
-};
-
-  const value = {
-    user,
-    token,
-    isOfflineMode,
-    loading,
-    register,
-    login,
-    logout,
-    enterOfflineMode,
+    try {
+      await AsyncStorage.setItem('offlineMode', 'true');
+      setIsOfflineMode(true);
+      setUser({ id: 'offline', name: 'Gast', email: 'offline@skipify.com' });
+      setToken(null);
+    } catch (error) {
+      console.error('Failed to enter offline mode:', error);
+    }
   };
+
+  const value = { user, token, isOfflineMode, loading, register, login, logout, enterOfflineMode };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
