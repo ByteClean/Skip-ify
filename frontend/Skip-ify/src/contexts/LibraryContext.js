@@ -15,6 +15,7 @@ export const LibraryProvider = ({ children }) => {
   const [localSongs, setLocalSongs] = useState([]);
   const [onlineSongs, setOnlineSongs] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [permissionGranted, setPermissionGranted] = useState(false);
 
   const SKIPIFY_DIR = `${FileSystem.documentDirectory}Skip-ify/`;
@@ -65,14 +66,87 @@ export const LibraryProvider = ({ children }) => {
 
       // Helpful debug information when things go wrong
       if (!res) throw new Error('Keine Antwort vom Server');
+      // If response not OK provide status + body for easier debugging
+      if (!res.ok) {
+        const text = await res.text().catch(() => '');
+        throw new Error(`Fehler beim Laden der Online-Songs (status=${res.status}) ${text}`);
+      }
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Fehler beim Laden der Online-Songs');
       setOnlineSongs(data.map(song => ({ ...song, isOnline: true })));
     } catch (error) {
       // If aborted or other network errors, clear online list and log
       if (error.name === 'AbortError') console.warn('fetchOnlineSongs aborted due to timeout');
       else console.error('fetchOnlineSongs error:', error);
       setOnlineSongs([]);
+    }
+  };
+
+  const uploadOnlineFile = async () => {
+    if (!token) {
+      Alert.alert('Fehler', 'Nicht angemeldet');
+      return;
+    }
+    try {
+      setUploading(true);
+      const result = await DocumentPicker.getDocumentAsync({ type: ['audio/*'], copyToCacheDirectory: false });
+      // Handle different result shapes across SDKs
+      const file = result.assets?.[0] || (result.type === 'success' ? result : null);
+      if (!file) return;
+
+      let uri = file.uri || file.uri;
+      const name = file.name || file.uri.split('/').pop();
+      const mimeType = file.mimeType || file.type || 'audio/mpeg';
+
+      // On Android DocumentPicker can return content:// URIs — copy to cache for upload
+      if (uri && uri.startsWith('content://')) {
+        try {
+          const dest = FileSystem.cacheDirectory + name;
+          await FileSystem.copyAsync({ from: uri, to: dest });
+          uri = dest;
+        } catch (e) {
+          console.warn('Failed to copy content URI to cache before upload', e);
+        }
+      }
+
+      const form = new FormData();
+      form.append('file', {
+        uri,
+        name,
+        type: mimeType,
+      });
+
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 15000);
+
+      console.log('uploadOnlineFile', { API_URL, uri, name, mimeType, token: !!token });
+      const res = await fetch(`${API_URL}/songs/upload`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: form,
+        signal: controller.signal,
+      });
+      clearTimeout(timeout);
+
+      if (!res.ok) {
+        const text = await res.text().catch(() => '');
+        throw new Error(`Upload fehlgeschlagen (status=${res.status}) ${text}`);
+      }
+
+      const data = await res.json().catch(() => ({}));
+      Alert.alert('Erfolg', data.message || 'Upload erfolgreich');
+      // Refresh online songs after successful upload
+      await fetchOnlineSongs();
+    } catch (error) {
+      if (error.name === 'AbortError') Alert.alert('Fehler', 'Upload abgebrochen (Timeout)');
+      else {
+        console.error('uploadOnlineFile error:', error);
+        Alert.alert('Fehler', error.message || 'Upload fehlgeschlagen');
+      }
+    }
+    finally {
+      setUploading(false);
     }
   };
 
@@ -145,10 +219,12 @@ export const LibraryProvider = ({ children }) => {
         localSongs,
         onlineSongs,
         loading,
+        uploading,
         permissionGranted,
         initLibrary,
         refreshLibrary,
         uploadLocalFile,
+        uploadOnlineFile,
         deleteLocalSong,
         deleteOnlineSong,
       }}

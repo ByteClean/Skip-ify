@@ -7,6 +7,8 @@ import AppTabs from './src/navigation/AppTabs';
 import { View, ActivityIndicator, Text, StyleSheet } from 'react-native';
 import { COLORS } from './src/theme/colors';
 import { LibraryProvider } from './src/contexts/LibraryContext';
+import { PlaylistsProvider } from './src/contexts/PlaylistsContext';
+import { FavoritesProvider } from './src/contexts/FavoritesContext';
 
 const LoadingScreen = () => (
   <View style={styles.container}>
@@ -31,11 +33,15 @@ const AppContent = () => {
 export default function App() {
   return (
     <AuthProvider>
-      <LibraryProvider>
-        <NavigationContainer>
-          <AppContent />
-        </NavigationContainer>
-      </LibraryProvider>
+      <FavoritesProvider>
+        <PlaylistsProvider>
+          <LibraryProvider>
+            <NavigationContainer>
+              <AppContent />
+            </NavigationContainer>
+          </LibraryProvider>
+        </PlaylistsProvider>
+      </FavoritesProvider>
     </AuthProvider>
   );
 }

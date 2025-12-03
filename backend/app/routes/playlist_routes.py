@@ -60,4 +60,6 @@ def delete_playlist(playlist_id):
 def list_playlists():
     user_id = get_jwt_identity()
     playlists = Playlist.get_by_user(user_id)
+    # small debug log to help frontend troubleshooting
+    print(f"[playlist_routes] list_playlists user={user_id} count={len(playlists)}")
     return jsonify([p.to_dict() for p in playlists]), 200

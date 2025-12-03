@@ -10,6 +10,7 @@ favorite_bp = Blueprint('favorites', __name__)
 def mark_favorite():
     user_id = get_jwt_identity()
     data = request.get_json()
+    print(f"[favorite_routes] mark_favorite called user={user_id} data={data}")
     song_id = data.get('song_id')
     
     if not song_id:
@@ -32,6 +33,7 @@ def mark_favorite():
 def unmark_favorite():
     user_id = get_jwt_identity()
     data = request.get_json()
+    print(f"[favorite_routes] unmark_favorite called user={user_id} data={data}")
     song_id = data.get('song_id')
     
     if not song_id:
@@ -50,4 +52,5 @@ def list_favorites():
         song = Song.get_by_id(str(sid))
         if song and song.user_id == user_id:
             songs.append(song.to_dict())
+    print(f"[favorite_routes] list_favorites user={user_id} favorites_count={len(songs)}")
     return jsonify(songs), 200

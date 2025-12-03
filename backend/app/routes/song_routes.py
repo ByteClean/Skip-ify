@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify, send_from_directory, Response
+from flask import Blueprint, request, jsonify, send_from_directory, Response, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from werkzeug.utils import secure_filename
 from app.models.mongo_models import Song, mongo
@@ -25,13 +25,22 @@ def upload_song():
     
     if not allowed_file(file.filename):
         return jsonify({'error': 'Nur MP3/FLAC erlaubt'}), 400
-    
-    if file.content_length and file.content_length > 50 * 1024 * 1024:
-        return jsonify({'error': 'Größe überschritten (≤50MB)'}), 400
+    # Use request.content_length for overall request size checking
+    max_len = current_app.config.get('MAX_CONTENT_LENGTH', 50 * 1024 * 1024)
+    if request.content_length and request.content_length > max_len:
+        return jsonify({'error': f'Größe überschritten (≤{max_len} bytes)'}), 400
     
     filename = secure_filename(file.filename)
-    file_path = os.path.join(Config.UPLOAD_FOLDER, f"{user_id}_{filename}")  # User-spezifisch
-    file.save(file_path)
+    # Ensure upload folder exists
+    upload_dir = current_app.config.get('UPLOAD_FOLDER')
+    if not os.path.isabs(upload_dir):
+        upload_dir = os.path.abspath(upload_dir)
+    os.makedirs(upload_dir, exist_ok=True)
+    file_path = os.path.join(upload_dir, f"{user_id}_{filename}")  # User-specific
+    try:
+        file.save(file_path)
+    except Exception as e:
+        return jsonify({'error': 'Datei konnte nicht gespeichert werden', 'detail': str(e)}), 500
     
     data = request.form.to_dict()
     song_data = {
