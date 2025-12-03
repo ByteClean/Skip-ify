@@ -54,14 +54,24 @@ export const LibraryProvider = ({ children }) => {
       return;
     }
     try {
+      // Use AbortController to avoid hanging fetch requests
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 8000);
       const res = await fetch(`${API_URL}/songs/list`, {
         headers: { Authorization: `Bearer ${token}` },
+        signal: controller.signal,
       });
+      clearTimeout(timeout);
+
+      // Helpful debug information when things go wrong
+      if (!res) throw new Error('Keine Antwort vom Server');
       const data = await res.json();
-      if (!res.ok) throw new Error('Fehler beim Laden der Online-Songs');
+      if (!res.ok) throw new Error(data.error || 'Fehler beim Laden der Online-Songs');
       setOnlineSongs(data.map(song => ({ ...song, isOnline: true })));
     } catch (error) {
-      console.error(error);
+      // If aborted or other network errors, clear online list and log
+      if (error.name === 'AbortError') console.warn('fetchOnlineSongs aborted due to timeout');
+      else console.error('fetchOnlineSongs error:', error);
       setOnlineSongs([]);
     }
   };
@@ -109,15 +119,23 @@ export const LibraryProvider = ({ children }) => {
   const deleteOnlineSong = async (songId) => {
     if (!token) return;
     try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 8000);
       const res = await fetch(`${API_URL}/songs/${songId}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
+        signal: controller.signal,
       });
-      if (!res.ok) throw new Error('Online-Löschen fehlgeschlagen');
+      clearTimeout(timeout);
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || 'Online-Löschen fehlgeschlagen');
+      }
       setOnlineSongs(s => s.filter(sg => sg.id !== songId));
       Alert.alert('Gelöscht', 'Online-Song entfernt');
     } catch (error) {
-      Alert.alert('Fehler', error.message);
+      if (error.name === 'AbortError') Alert.alert('Fehler', 'Löschen abgebrochen (Timeout)');
+      else Alert.alert('Fehler', error.message || 'Löschen fehlgeschlagen');
     }
   };
 
