@@ -5,8 +5,10 @@ import { Alert } from 'react-native';
 import { API_URL_DEV, API_URL_PROD } from '@env';
 
 export const API_URL = __DEV__
-  ? API_URL_DEV || 'http://10.0.2.2:5000'
-  : API_URL_PROD || 'https://your-api.com';
+  ? API_URL_DEV
+  : API_URL_PROD;
+  
+console.log('Using API URL:', API_URL);
 
 const AuthContext = createContext({
   user: null,
